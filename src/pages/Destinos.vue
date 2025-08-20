@@ -31,25 +31,14 @@
 
     <!-- Resultados -->
     <div class="row">
-      <div
-        class="col-md-4 mb-4"
-        v-for="destino in destinosFiltrados"
-        :key="destino.id"
-      >
-        <div class="card h-100 shadow-sm">
-          <img :src="destino.imagen" class="card-img-top" alt="Imagen destino" />
-          <div class="card-body">
-            <h5 class="card-title">{{ destino.nombre }}</h5>
-            <p class="card-text">{{ destino.descripcion }}</p>
-            <p class="card-text fw-bold">{{ destino.precio }} €</p>
-            <router-link
-              :to="`/destinos/${destino.id}`"
-              class="btn-ver-mas w-100"
-            >
-              Ver más
-            </router-link>
-          </div>
-        </div>
+      <div class="col-md-4" v-for="destino in destinosFiltrados" :key="destino.id">
+        <TarjetaDestino
+          :id="destino.id"
+          :nombre="destino.nombre"
+          :descripcion="destino.descripcion"
+          :precio="destino.precio"  
+          :imagen="destino.imagen"
+        />
       </div>
     </div>
   </div>
@@ -59,44 +48,67 @@
 import { reactive, computed } from 'vue'
 import Slider from '@vueform/slider'
 import '@vueform/slider/themes/default.css'
+import TarjetaDestino from '../components/TarjetaDestino.vue'
 
 const destinos = [
   {
     id: 1,
     nombre: 'París, Francia',
-    descripcion:
-      'La ciudad del amor y la luz. Ideal para escapadas románticas.',
+    descripcion: 'La ciudad del amor y la luz. Ideal para escapadas románticas.',
     precio: 799,
-    imagen:
-      'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80',
+    imagen: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Paris_Night.jpg',
   },
   {
     id: 2,
     nombre: 'Tokyo, Japón',
-    descripcion:
-      'Una experiencia urbana y cultural única en el corazón de Asia.',
+    descripcion: 'Una experiencia urbana y cultural única en el corazón de Asia.',
     precio: 1299,
-    imagen:
-      'https://images.unsplash.com/photo-1511732351544-895952bd2f97?auto=format&fit=crop&w=800&q=80',
+    imagen: 'https://upload.wikimedia.org/wikipedia/commons/1/17/Tokyo_Tower_and_around_Skyscrapers.jpg',
   },
   {
     id: 3,
     nombre: 'Málaga, España',
     descripcion: 'Sol, playa, cultura y pescaíto frito. ¡Pa qué más!',
     precio: 499,
-    imagen:
-      'https://images.unsplash.com/photo-1604579371775-6df2b4eb595f?auto=format&fit=crop&w=800&q=80',
+    imagen: 'https://upload.wikimedia.org/wikipedia/commons/4/45/La_Malagueta_M%C3%A1laga_Spain.jpg',
   },
   {
     id: 4,
     nombre: 'Nueva York, EE. UU.',
-    descripcion:
-      'La ciudad que nunca duerme, ideal para aventuras urbanas.',
+    descripcion: 'La ciudad que nunca duerme, ideal para aventuras urbanas.',
     precio: 1399,
-    imagen:
-      'https://images.unsplash.com/photo-1549921296-3a6b52e5797d?auto=format&fit=crop&w=800&q=80',
+    imagen: 'https://upload.wikimedia.org/wikipedia/commons/a/a1/Times_Square%2C_New_York_City_%28HDR%29.jpg',
   },
-]
+  {
+    id: 5,
+    nombre: 'Roma, Italia',
+    descripcion: 'Historia, arte y pasta en cada esquina. La cuna del Imperio Romano.',
+    precio: 899,
+    imagen: 'https://upload.wikimedia.org/wikipedia/commons/d/d6/Colosseum_in_Rome%2C_Italy_-_April_2007.jpg',
+  },
+  {
+    id: 6,
+    nombre: 'Londres, Reino Unido',
+    descripcion: 'Clásico y moderno a la vez. Big Ben, té y mucha cultura.',
+    precio: 1099,
+    imagen: 'https://upload.wikimedia.org/wikipedia/commons/3/3e/London_Eye_Twilight_April_2006.jpg',
+  },
+  {
+    id: 7,
+    nombre: 'Sídney, Australia',
+    descripcion: 'Surf, sol y la Ópera más famosa del mundo.',
+    precio: 1799,
+    imagen: 'https://upload.wikimedia.org/wikipedia/commons/9/91/Sydney_Opera_House_-_Dec_2008.jpg',
+  },
+  {
+    id: 8,
+    nombre: 'Estambul, Turquía',
+    descripcion: 'Un puente entre Asia y Europa. Historia y gastronomía brutal.',
+    precio: 849,
+    imagen: 'https://upload.wikimedia.org/wikipedia/commons/5/55/Bosphorus_Bridge%2C_Istanbul_2013.jpg',
+  }
+];
+
 
 // Cálculo automático de límites globales
 const precios = destinos.map((d) => d.precio)
@@ -115,7 +127,13 @@ const destinosFiltrados = computed(() =>
     const coincideTexto = d.nombre
       .toLowerCase()
       .includes(filtro.texto.toLowerCase())
-    const enRango = d.precio >= filtro.precio[0] && d.precio <= filtro.precio[1]
+
+    // Convertimos a número por seguridad
+    const precioMin = Number(filtro.precio[0])
+    const precioMax = Number(filtro.precio[1])
+
+    const enRango = d.precio >= precioMin && d.precio <= precioMax
+
     return coincideTexto && enRango
   })
 )
