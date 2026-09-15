@@ -37,11 +37,25 @@
           </li>
           <li class="nav-item">
             <router-link
+              to="/favoritos"
+              class="nav-link position-relative"
+              active-class="active"
+            >
+              <i class="fas fa-heart me-1"></i>Favoritos
+              <span
+                v-if="favoritosCount > 0"
+                class="badge bg-warning text-dark rounded-pill carrito-badge"
+                >{{ favoritosCount }}</span
+              >
+            </router-link>
+          </li>
+          <li class="nav-item">
+            <router-link
               to="/carrito"
               class="nav-link position-relative"
               active-class="active"
             >
-              Carrito
+              <i class="fas fa-cart-shopping me-1"></i>Carrito
               <span
                 v-if="carritoCount > 0"
                 class="badge bg-warning text-dark rounded-pill carrito-badge"
@@ -55,35 +69,38 @@
   </nav>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 import { useCarritoStore } from '../stores/carrito'
+import { useFavoritosStore } from '../stores/favoritos'
 
 const carrito = useCarritoStore()
+const favoritos = useFavoritosStore()
 
 const carritoCount = computed(() => carrito.reservas.length)
+const favoritosCount = computed(() => favoritos.total)
 </script>
 
 <style scoped>
 .bg-navbar {
-  background-color: #1b263b;
-  font-family: 'Poppins', sans-serif;
+  background-color: var(--color-dark);
+  font-family: var(--font-heading);
 }
 
 .navbar-brand {
-  color: #ffc857;
+  color: var(--color-gold);
   font-size: 1.5rem;
   letter-spacing: 1.2px;
   transition: color 0.3s ease;
 }
 
 .navbar-brand:hover {
-  color: #ff6f3c;
+  color: var(--color-orange);
   text-shadow: 0 0 8px #ff6f3caa;
 }
 
 .nav-link {
-  color: #ffc857;
+  color: var(--color-gold);
   margin-left: 1rem;
   font-size: 1.1rem;
   transition: color 0.3s ease;
@@ -91,7 +108,7 @@ const carritoCount = computed(() => carrito.reservas.length)
 
 .nav-link:hover,
 .nav-link.active {
-  color: #ff6f3c;
+  color: var(--color-orange);
   text-shadow: 0 0 6px #ff6f3caa;
 }
 

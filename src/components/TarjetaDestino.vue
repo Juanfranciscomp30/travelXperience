@@ -1,46 +1,81 @@
 <template>
   <div class="tarjeta-destino">
     <div class="imagen-wrapper">
-      <img :src="imagen" :alt="titulo" class="imagen-destino" />
+      <img :src="imagen" :alt="`${nombre}, ${pais}`" class="imagen-destino" loading="lazy" />
+
+      <span class="badge-categoria">{{ categoria }}</span>
+
+      <button
+        class="btn-favorito"
+        :class="{ activo: esFavorito }"
+        type="button"
+        @click="favoritos.toggle(id_)"
+        :aria-label="esFavorito ? 'Quitar de favoritos' : 'Añadir a favoritos'"
+      >
+        <i :class="esFavorito ? 'fas fa-heart' : 'far fa-heart'"></i>
+      </button>
+
+      <div class="overlay-info">
+        <span><i class="fas fa-clock me-1"></i>{{ duracion }} días</span>
+        <span><i class="fas fa-star me-1"></i>{{ valoracion.toFixed(1) }}</span>
+      </div>
     </div>
+
     <div class="contenido">
-      <h5 class="nombre">{{ nombre }}</h5>
-      <h3 class="precio">{{ precioFormateado }}</h3>
+      <div class="d-flex justify-content-between align-items-start">
+        <h5 class="nombre mb-0">{{ nombre }}</h5>
+      </div>
+      <p class="pais"><i class="fas fa-location-dot me-1"></i>{{ pais }}</p>
       <p class="descripcion">{{ descripcion }}</p>
-      <router-link :to="`/destinos/${id}`" class="btn-vermas">
-        Ver más
-      </router-link>
+
+      <div class="footer-tarjeta">
+        <h3 class="precio">{{ precioFormateado }}</h3>
+        <router-link :to="`/destinos/${id_}`" class="btn-vermas">
+          Ver más
+        </router-link>
+      </div>
     </div>
   </div>
 </template>
 
-<script setup>
-import { computed } from "vue"
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useFavoritosStore } from '../stores/favoritos'
+import type { Categoria } from '../data/destinos'
 
-const { precio } = defineProps({
-  id: [String, Number],
-  nombre: String,
-  precio: [String, Number],
-  descripcion: String,
-  imagen: String
-})
+const props = defineProps<{
+  id: number | string
+  nombre: string
+  pais: string
+  precio: number | string
+  descripcion: string
+  imagen: string
+  categoria: Categoria
+  duracion: number
+  valoracion: number
+}>()
+
+// El prop "id" puede llegar como string desde el router; lo normalizamos a number
+const id_ = computed(() => Number(props.id))
+
+const favoritos = useFavoritosStore()
+const esFavorito = computed(() => favoritos.esFavorito(id_.value))
 
 const precioFormateado = computed(() =>
-  Number(precio).toLocaleString("es-ES", {
-    style: "currency",
-    currency: "EUR",
-    minimumFractionDigits: 2
+  Number(props.precio).toLocaleString('es-ES', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 0,
   })
 )
-
 </script>
 
 <style scoped>
 .tarjeta-destino {
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  background-color: #ffffff;
+  box-shadow: var(--shadow-sm);
+  background-color: var(--color-surface);
   transition: box-shadow 0.3s ease, transform 0.3s ease;
   height: 100%;
   display: flex;
@@ -48,13 +83,14 @@ const precioFormateado = computed(() =>
 }
 
 .tarjeta-destino:hover {
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-6px);
 }
 
 .imagen-wrapper {
+  position: relative;
   width: 100%;
-  height: 200px;
+  height: 220px;
   overflow: hidden;
 }
 
@@ -62,11 +98,63 @@ const precioFormateado = computed(() =>
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  transition: transform 0.4s ease;
 }
 
 .tarjeta-destino:hover .imagen-destino {
-  transform: scale(1.05);
+  transform: scale(1.08);
+}
+
+.badge-categoria {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(27, 38, 59, 0.85);
+  color: var(--color-gold);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 50px;
+  backdrop-filter: blur(2px);
+}
+
+.btn-favorito {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--color-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-favorito:hover {
+  transform: scale(1.1);
+}
+
+.btn-favorito.activo {
+  color: var(--color-orange);
+}
+
+.overlay-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 .contenido {
@@ -74,64 +162,69 @@ const precioFormateado = computed(() =>
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
 }
 
-.titulo {
-  font-size: 1.25rem;
+.nombre {
+  font-size: 1.2rem;
   font-weight: 700;
-  color: #ffc857; /* dorado */
-  font-family: 'Poppins', sans-serif;
-  margin-bottom: 8px;
-  transition: color 0.3s ease, text-shadow 0.3s ease;
+  color: var(--color-dark);
+  font-family: var(--font-heading);
 }
 
-.titulo:hover {
-  color: #ff6f3c; /* naranja */
-  text-shadow: 0 0 6px #ff6f3caa;
+.pais {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
 }
 
 .descripcion {
   flex-grow: 1;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   color: #555;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+}
+
+.footer-tarjeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 12px;
 }
 
 .precio {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 700;
-  color: #ff6f3c; /* naranja */
-  text-shadow: 0 0 6px #ff6f3caa;
-  font-family: 'Poppins', sans-serif;
-  margin-bottom: 8px;
-  transition: color 0.3s ease, text-shadow 0.3s ease;
-}
-
-.precio:hover {
-  color: #ffc857; /* dorado */
-  text-shadow: 0 0 8px #ffc857aa;
+  color: var(--color-orange);
+  font-family: var(--font-heading);
+  margin: 0;
 }
 
 .btn-vermas {
   display: inline-block;
-  background-color: #1b263b; /* mismo que navbar */
-  color: #ffc857; /* dorado */
+  background-color: var(--color-dark);
+  color: var(--color-gold);
   border: none;
-  padding: 10px;
-  border-radius: 8px;
+  padding: 9px 16px;
+  border-radius: 50px;
   text-align: center;
   text-decoration: none;
-  font-family: 'Poppins', sans-serif;
   font-weight: 600;
+  font-size: 0.9rem;
+  white-space: nowrap;
   transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .btn-vermas:hover {
-  background-color: #ff6f3c; /* naranja */
+  background-color: var(--color-orange);
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(255, 111, 60, 0.4);
+  box-shadow: var(--shadow-orange);
+}
+
+@media (max-width: 575.98px) {
+  .imagen-wrapper {
+    height: 190px;
+  }
 }
 </style>
-
-

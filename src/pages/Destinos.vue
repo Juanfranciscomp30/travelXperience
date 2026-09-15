@@ -1,114 +1,144 @@
 <template>
-  <div class="container py-5">
-    <h2 class="mb-4 text-center">Explora nuestros destinos</h2>
+  <div class="destinos-page">
+    <!-- Cabecera -->
+    <section class="destinos-hero text-white text-center">
+      <div class="container py-5">
+        <h1 class="fw-bold mb-2">Explora nuestros destinos</h1>
+        <p class="lead mb-0">{{ destinos.length }} experiencias esperándote por el mundo</p>
+      </div>
+    </section>
 
-    <!-- Filtros -->
-    <div class="row mb-4">
-      <div class="col-md-4">
-        <label class="form-label">Buscar por nombre</label>
-        <input
-          type="text"
-          class="form-control"
-          v-model="filtro.texto"
-          placeholder="Ej: París, Málaga, Milan..."
-        />
+    <div class="container filtros-wrapper">
+      <!-- Barra de filtros -->
+      <div class="filtros-card shadow">
+        <div class="row g-3 align-items-end">
+          <div class="col-12 col-lg-4">
+            <label class="form-label filtro-label">
+              <i class="fas fa-magnifying-glass me-2"></i>Buscar
+            </label>
+            <div class="input-group input-group-buscar">
+              <span class="input-group-text"><i class="fas fa-search"></i></span>
+              <input
+                type="text"
+                class="form-control"
+                v-model="filtro.texto"
+                placeholder="Ej: París, Málaga, Bali..."
+              />
+              <button
+                v-if="filtro.texto"
+                class="input-group-text btn-limpiar-texto"
+                @click="filtro.texto = ''"
+                type="button"
+                aria-label="Borrar búsqueda"
+              >
+                <i class="fas fa-xmark"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-7 col-lg-4">
+            <label class="form-label filtro-label">
+              <i class="fas fa-euro-sign me-2"></i>Rango de precio
+              <span class="precio-valor">{{ filtro.precio[0] }}€ - {{ filtro.precio[1] }}€</span>
+            </label>
+            <Slider
+              class="vue-slider"
+              v-model="filtro.precio"
+              :min="precioMinGlobal"
+              :max="precioMaxGlobal"
+              :step="10"
+              :tooltips="false"
+            />
+          </div>
+
+          <div class="col-8 col-md-3 col-lg-3">
+            <label class="form-label filtro-label">
+              <i class="fas fa-arrow-down-wide-short me-2"></i>Ordenar por
+            </label>
+            <select class="form-select selector-orden" v-model="orden">
+              <option value="relevancia">Relevancia</option>
+              <option value="precio-asc">Precio: menor a mayor</option>
+              <option value="precio-desc">Precio: mayor a menor</option>
+              <option value="valoracion">Mejor valorados</option>
+              <option value="nombre">Nombre A-Z</option>
+            </select>
+          </div>
+
+          <div class="col-4 col-md-2 col-lg-1 d-grid">
+            <button
+              class="btn btn-limpiar-filtros"
+              type="button"
+              :disabled="!hayFiltrosActivos"
+              @click="limpiarFiltros"
+              title="Limpiar filtros"
+            >
+              <i class="fas fa-rotate-left"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Píldoras de categoría -->
+        <div class="categorias-pills mt-3">
+          <button
+            class="pill"
+            :class="{ activa: filtro.categoria === null }"
+            @click="filtro.categoria = null"
+          >
+            Todos
+          </button>
+          <button
+            v-for="cat in categorias"
+            :key="cat"
+            class="pill"
+            :class="{ activa: filtro.categoria === cat }"
+            @click="filtro.categoria = filtro.categoria === cat ? null : cat"
+          >
+            {{ cat }}
+          </button>
+        </div>
       </div>
 
-      <div class="col-md-6 mb-3">
-        <label class="form-label"
-          >Rango de precios: {{ filtro.precio[0] }}€ - {{ filtro.precio[1] }}€</label
-        >
-       
-        <Slider class="vue-slider"
-          v-model="filtro.precio"
-          :min="precioMinGlobal"
-          :max="precioMaxGlobal"
-          :step="10"
-          :tooltip="true"
-        />
+      <!-- Contador de resultados -->
+      <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+        <p class="resultados-count mb-0">
+          <strong>{{ destinosOrdenados.length }}</strong>
+          {{ destinosOrdenados.length === 1 ? 'destino encontrado' : 'destinos encontrados' }}
+        </p>
       </div>
-    </div>
 
-    <!-- Resultados -->
-    <div class="row">
-      <div class="col-md-4" v-for="destino in destinosFiltrados" :key="destino.id">
-        <TarjetaDestino
-          :id="destino.id"
-          :nombre="destino.nombre"
-          :descripcion="destino.descripcion"
-          :precio="destino.precio"  
-          :imagen="destino.imagen"
-        />
+      <!-- Resultados -->
+      <div class="row g-4 pb-5">
+        <div class="col-lg-4 col-md-6" v-for="destino in destinosOrdenados" :key="destino.id">
+          <TarjetaDestino
+            :id="destino.id"
+            :nombre="destino.nombre"
+            :pais="destino.pais"
+            :descripcion="destino.descripcion"
+            :precio="destino.precio"
+            :imagen="destino.imagen"
+            :categoria="destino.categoria"
+            :duracion="destino.duracion"
+            :valoracion="destino.valoracion"
+          />
+        </div>
+
+        <div v-if="destinosOrdenados.length === 0" class="col-12 text-center py-5">
+          <i class="fas fa-compass fa-3x mb-3 icono-vacio"></i>
+          <h4>No hay destinos que coincidan con tu búsqueda</h4>
+          <p class="text-muted">Prueba a ajustar los filtros o el rango de precio.</p>
+          <button class="btn btn-brand mt-2" @click="limpiarFiltros">Limpiar filtros</button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
-import { reactive, computed } from 'vue'
+<script setup lang="ts">
+import { reactive, computed, ref } from 'vue'
 import Slider from '@vueform/slider'
 import '@vueform/slider/themes/default.css'
 import TarjetaDestino from '../components/TarjetaDestino.vue'
-
-const destinos = [
-  {
-    id: 1,
-    nombre: 'París, Francia',
-    descripcion: 'La ciudad del amor y la luz. Ideal para escapadas románticas.',
-    precio: 799,
-    imagen: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Paris_Night.jpg',
-  },
-  {
-    id: 2,
-    nombre: 'Tokyo, Japón',
-    descripcion: 'Una experiencia urbana y cultural única en el corazón de Asia.',
-    precio: 1299,
-    imagen: 'https://upload.wikimedia.org/wikipedia/commons/1/17/Tokyo_Tower_and_around_Skyscrapers.jpg',
-  },
-  {
-    id: 3,
-    nombre: 'Málaga, España',
-    descripcion: 'Sol, playa, cultura y pescaíto frito. ¡Pa qué más!',
-    precio: 499,
-    imagen: 'https://upload.wikimedia.org/wikipedia/commons/4/45/La_Malagueta_M%C3%A1laga_Spain.jpg',
-  },
-  {
-    id: 4,
-    nombre: 'Nueva York, EE. UU.',
-    descripcion: 'La ciudad que nunca duerme, ideal para aventuras urbanas.',
-    precio: 1399,
-    imagen: 'https://upload.wikimedia.org/wikipedia/commons/a/a1/Times_Square%2C_New_York_City_%28HDR%29.jpg',
-  },
-  {
-    id: 5,
-    nombre: 'Roma, Italia',
-    descripcion: 'Historia, arte y pasta en cada esquina. La cuna del Imperio Romano.',
-    precio: 899,
-    imagen: 'https://upload.wikimedia.org/wikipedia/commons/d/d6/Colosseum_in_Rome%2C_Italy_-_April_2007.jpg',
-  },
-  {
-    id: 6,
-    nombre: 'Londres, Reino Unido',
-    descripcion: 'Clásico y moderno a la vez. Big Ben, té y mucha cultura.',
-    precio: 1099,
-    imagen: 'https://upload.wikimedia.org/wikipedia/commons/3/3e/London_Eye_Twilight_April_2006.jpg',
-  },
-  {
-    id: 7,
-    nombre: 'Sídney, Australia',
-    descripcion: 'Surf, sol y la Ópera más famosa del mundo.',
-    precio: 1799,
-    imagen: 'https://upload.wikimedia.org/wikipedia/commons/9/91/Sydney_Opera_House_-_Dec_2008.jpg',
-  },
-  {
-    id: 8,
-    nombre: 'Estambul, Turquía',
-    descripcion: 'Un puente entre Asia y Europa. Historia y gastronomía brutal.',
-    precio: 849,
-    imagen: 'https://upload.wikimedia.org/wikipedia/commons/5/55/Bosphorus_Bridge%2C_Istanbul_2013.jpg',
-  }
-];
-
+import { destinos, categorias, type Categoria } from '../data/destinos'
 
 // Cálculo automático de límites globales
 const precios = destinos.map((d) => d.precio)
@@ -118,119 +148,236 @@ const precioMaxGlobal = Math.max(...precios)
 // Filtro reactivo
 const filtro = reactive({
   texto: '',
-  precio: [precioMinGlobal, precioMaxGlobal], // rango en un array
+  precio: [precioMinGlobal, precioMaxGlobal] as [number, number],
+  categoria: null as Categoria | null,
 })
 
-// Filtro computado
+const orden = ref<'relevancia' | 'precio-asc' | 'precio-desc' | 'valoracion' | 'nombre'>(
+  'relevancia'
+)
+
+const hayFiltrosActivos = computed(
+  () =>
+    filtro.texto !== '' ||
+    filtro.categoria !== null ||
+    filtro.precio[0] !== precioMinGlobal ||
+    filtro.precio[1] !== precioMaxGlobal ||
+    orden.value !== 'relevancia'
+)
+
+function limpiarFiltros() {
+  filtro.texto = ''
+  filtro.categoria = null
+  filtro.precio = [precioMinGlobal, precioMaxGlobal]
+  orden.value = 'relevancia'
+}
+
 const destinosFiltrados = computed(() =>
   destinos.filter((d) => {
-    const coincideTexto = d.nombre
-      .toLowerCase()
-      .includes(filtro.texto.toLowerCase())
+    const texto = `${d.nombre} ${d.pais}`.toLowerCase()
+    const coincideTexto = texto.includes(filtro.texto.toLowerCase())
 
-    // Convertimos a número por seguridad
     const precioMin = Number(filtro.precio[0])
     const precioMax = Number(filtro.precio[1])
-
     const enRango = d.precio >= precioMin && d.precio <= precioMax
 
-    return coincideTexto && enRango
+    const coincideCategoria = filtro.categoria === null || d.categoria === filtro.categoria
+
+    return coincideTexto && enRango && coincideCategoria
   })
 )
+
+const destinosOrdenados = computed(() => {
+  const lista = [...destinosFiltrados.value]
+  switch (orden.value) {
+    case 'precio-asc':
+      return lista.sort((a, b) => a.precio - b.precio)
+    case 'precio-desc':
+      return lista.sort((a, b) => b.precio - a.precio)
+    case 'valoracion':
+      return lista.sort((a, b) => b.valoracion - a.valoracion)
+    case 'nombre':
+      return lista.sort((a, b) => a.nombre.localeCompare(b.nombre))
+    default:
+      return lista
+  }
+})
 </script>
 
 <style scoped>
-.section-title {
-  font-family: 'Poppins', sans-serif;
+.destinos-hero {
+  background: linear-gradient(135deg, var(--color-dark) 0%, var(--color-dark-soft) 100%);
+  font-family: var(--font-heading);
+}
+
+.filtros-wrapper {
+  margin-top: -2.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.filtros-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.filtro-label {
+  font-weight: 600;
+  color: var(--color-dark);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.precio-valor {
+  color: var(--color-orange);
   font-weight: 700;
-  color: #1b263b;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
 }
 
-.destino-card {
-  border-radius: 15px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+.input-group-buscar .input-group-text {
+  background-color: #f4f5f9;
+  border-right: none;
+  color: var(--color-text-muted);
+}
+.input-group-buscar .form-control {
+  border-left: none;
+  border-right: none;
+}
+.input-group-buscar .form-control:focus {
+  box-shadow: none;
+  border-color: #ced4da;
+}
+.btn-limpiar-texto {
+  background-color: #f4f5f9;
+  border-left: none;
   cursor: pointer;
+  color: var(--color-text-muted);
+}
+.btn-limpiar-texto:hover {
+  color: var(--color-orange);
 }
 
-.destino-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 15px 30px rgba(255, 111, 60, 0.4);
-}
-
-.card-img-top {
-  height: 200px;
-  object-fit: cover;
-  border-top-left-radius: 15px;
-  border-top-right-radius: 15px;
-}
-
-.card-title {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
-}
-
-.precio {
-  font-size: 1.2rem;
-}
-
-.btn-outline-warning {
-  border-width: 2px;
-  font-weight: 600;
-  border-radius: 50px;
-  transition: all 0.3s ease;
-}
-
-.btn-outline-warning:hover {
-  background-color: #ff6f3c;
-  border-color: #ff6f3c;
-  color: white;
-  box-shadow: 0 0 15px #ff6f3caa;
-}
-
-.btn-ver-mas {
-  background-color: #ff6f3c;
-  border: none;
-  text-decoration: none;
-  color: white;
-  font-weight: 600;
-  border-radius: 30px;
-  padding: 10px 20px;
-  text-align: center;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 10px rgba(255, 111, 60, 0.3);
-}
-
-.btn-ver-mas:hover {
-  background-color: #e85c2b;
-  box-shadow: 0 6px 15px rgba(255, 111, 60, 0.5);
-  transform: scale(1.03);
-}
-
-
-.vue-slider {
-  --slider-connect-bg: #ff6f3c;
-  --slider-handle-bg: #ff6f3c;
-  --slider-tooltip-bg: #1b263b;
-  --slider-tooltip-color: #ffffff;
-
-  height: 1.5rem;
-  margin-top: 8px;
-}
-
-.vue-slider-rail {
-  height: 6px;
+.selector-orden {
   border-radius: 10px;
-  background-color: #e0e0e0;
+}
+.selector-orden:focus {
+  border-color: var(--color-orange);
+  box-shadow: 0 0 0 0.2rem rgba(255, 111, 60, 0.15);
 }
 
-.vue-slider-handle {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+.btn-limpiar-filtros {
+  background-color: #f4f5f9;
+  color: var(--color-dark);
+  border: none;
+  border-radius: 10px;
+  height: 100%;
+  min-height: 38px;
+}
+.btn-limpiar-filtros:hover:not(:disabled) {
+  background-color: var(--color-dark);
+  color: var(--color-gold);
+}
+.btn-limpiar-filtros:disabled {
+  opacity: 0.4;
 }
 
+.categorias-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
 
+.pill {
+  background: #f4f5f9;
+  border: 1px solid transparent;
+  color: var(--color-dark);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.45rem 1.1rem;
+  border-radius: 50px;
+  transition: all 0.2s ease;
+}
+.pill:hover {
+  border-color: var(--color-orange);
+}
+.pill.activa {
+  background-color: var(--color-orange);
+  color: #fff;
+  box-shadow: var(--shadow-orange);
+}
+
+.resultados-count {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+}
+.resultados-count strong {
+  color: var(--color-dark);
+}
+
+.icono-vacio {
+  color: var(--color-orange);
+  opacity: 0.6;
+}
+
+/* @vueform/slider se personaliza por variables CSS propias (no por clases
+   tipo .vue-slider-rail, que son de otra librería y no existían en el DOM
+   real — por eso antes salía con el estilo por defecto, feo y sin forma). */
+.vue-slider {
+  --slider-bg: #e6e7ef;
+  --slider-connect-bg: var(--color-orange);
+  --slider-height: 6px;
+  --slider-radius: 999px;
+
+  --slider-handle-bg: #ffffff;
+  --slider-handle-border: 3px solid var(--color-orange);
+  --slider-handle-width: 20px;
+  --slider-handle-height: 20px;
+  --slider-handle-radius: 999px;
+  --slider-handle-shadow: 0 2px 6px rgba(27, 38, 59, 0.25);
+  --slider-handle-shadow-active: 0 0 0 6px rgba(255, 111, 60, 0.18);
+  --slider-handle-ring-color: rgba(255, 111, 60, 0.18);
+
+  margin-top: 16px;
+  margin-bottom: 4px;
+}
+
+/* ===== Responsive (móvil) ===== */
+@media (max-width: 767.98px) {
+  .filtros-wrapper {
+    margin-top: -1.25rem;
+  }
+
+  .filtros-card {
+    padding: 1.25rem;
+    border-radius: var(--radius-md);
+  }
+
+  .destinos-hero .container {
+    padding-top: 2.5rem !important;
+    padding-bottom: 3.5rem !important;
+  }
+
+  .destinos-hero h1 {
+    font-size: 1.8rem;
+  }
+
+  .categorias-pills {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .pill {
+    flex: 0 0 auto;
+  }
+
+  .btn-limpiar-filtros {
+    width: 100%;
+  }
+}
 </style>

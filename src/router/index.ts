@@ -4,18 +4,23 @@ import Inicio from '../pages/Inicio.vue'
 import Destinos from '../pages/Destinos.vue'
 import DestinoDetalle from '../pages/DestinoDetalle.vue'
 import Carrito from '../pages/Carrito.vue'
+import Favoritos from '../pages/Favoritos.vue'
 
 const routes: Array<RouteRecordRaw> = [
   { path: '/', name: 'Inicio', component: Inicio },
   { path: '/destinos', name: 'Destinos', component: Destinos },
   { path: '/destinos/:id', name: 'DestinoDetalle', component: DestinoDetalle },
   { path: '/carrito', name: 'Carrito', component: Carrito },
+  { path: '/favoritos', name: 'Favoritos', component: Favoritos },
 ]
 
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
+  scrollBehavior() {
+    return { top: 0 }
+  },
 })
 
 export default router
