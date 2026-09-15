@@ -77,8 +77,8 @@
 <style scoped>
 .hero-section {
   min-height: 80vh;
-  background: linear-gradient(135deg, #ff6f3c 0%, #ffc857 100%);
-  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, var(--color-orange) 0%, var(--color-gold) 100%);
+  font-family: var(--font-heading);
 }
 
 .hero-title {
@@ -91,44 +91,44 @@
 }
 
 .btn-hero {
-  background-color: #1b263b;
-  color: #ffc857;
+  background-color: var(--color-dark);
+  color: var(--color-gold);
   font-weight: 600;
   border-radius: 50px;
   transition: background-color 0.3s ease;
 }
 
 .btn-hero:hover {
-  background-color: #ffc857;
-  color: #1b263b;
+  background-color: var(--color-gold);
+  color: var(--color-dark);
   box-shadow: 0 0 15px #ffc857aa;
 }
 
 .benefits-section {
   background-color: #f4f4f9;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-heading);
 }
 
 .section-title {
   font-weight: 700;
-  color: #1b263b;
+  color: var(--color-dark);
   letter-spacing: 1.5px;
   text-transform: uppercase;
 }
 
 .benefit-card {
   background-color: white;
-  border-radius: 15px;
+  border-radius: var(--radius-lg);
 }
 
 .icon-wrapper {
   font-size: 3rem;
-  color: #ff6f3c;
+  color: var(--color-orange);
 }
 
 .cta-section {
-  background: #1b263b;
-  font-family: 'Poppins', sans-serif;
+  background: var(--color-dark);
+  font-family: var(--font-heading);
 }
 
 .cta-text {
@@ -139,16 +139,40 @@
 }
 
 .btn-cta {
-  background-color: #ffc857;
-  color: #1b263b;
+  background-color: var(--color-gold);
+  color: var(--color-dark);
   font-weight: 600;
   border-radius: 50px;
   transition: background-color 0.3s ease;
 }
 
 .btn-cta:hover {
-  background-color: #ff6f3c;
+  background-color: var(--color-orange);
   color: white;
   box-shadow: 0 0 20px #ff6f3caa;
+}
+
+/* ===== Responsive (móvil) ===== */
+@media (max-width: 767.98px) {
+  .hero-section {
+    min-height: 60vh;
+  }
+
+  .hero-title {
+    font-size: 2.2rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.05rem;
+  }
+
+  .cta-text {
+    font-size: 1.15rem;
+  }
+
+  .btn-hero,
+  .btn-cta {
+    padding: 0.75rem 2rem !important;
+  }
 }
 </style>
